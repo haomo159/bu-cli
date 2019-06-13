@@ -12,5 +12,6 @@ const DESCRIPTION = pkg.description
 program
   .version(VERSION)
   .description(DESCRIPTION)
+  .usage('[command] [options]')
   .command('atp60', 'publish ATP60 token or import SKU information')
   .parse(process.argv)
