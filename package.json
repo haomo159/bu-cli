@@ -1,7 +1,7 @@
 {
-  "name": "bu-cli",
+  "name": "bu-atp60-cli",
   "version": "1.0.0",
-  "description": "A simple CLI for bumo",
+  "description": "A simple CLI for bumo atp60",
   "scripts": {
     "test": "mocha"
   },
@@ -10,13 +10,17 @@
   "main": "bin/bu-cli.js",
   "preferGlobal": true,
   "bin": {
-    "bu": "./bin/bu-cli.js"
+    "bu": "./bin/bu-atp60-cli.js"
   },
   "dependencies": {
+    "bignumber.js": "^9.0.0",
+    "bumo-encryption": "^1.0.2",
+    "bumo-sdk": "^2.1.1",
     "colors": "^1.3.3",
     "commander": "^2.20.0",
     "debug": "^4.1.1",
-    "mkdirp": "^0.5.1"
+    "mkdirp": "^0.5.1",
+    "readline": "^1.3.0"
   },
   "devDependencies": {
     "eslint": "^5.15.3",
