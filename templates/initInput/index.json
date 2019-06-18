@@ -1,0 +1,35 @@
+{
+  "companyFullName": "BUMO社区",
+  "companyCertification": {
+    "1": [ "0", "企业组织机构代码", "text", "99999999", "-", "-" ],
+    "2": [ "0", "法人名称", "text", "里斯", "-", "-" ],
+    "3": [ "0", "法人身份证号", "text", "123", "-", "-" ],
+    "4": [
+      "0",
+      "营业执照照片",
+      "image",
+      "jpeg|https://www.bumo.io/img_dpos/ab/8f/ce/acf0c8ba504b4639a916c142c02028e4.jpg|sha256|a9cd4908ad7ec1fc1cc8ec84641fa55b3abb93a731625e7eb17d2c41babe9f25",
+      "-",
+      "-"
+    ],
+    "5": [
+      "0",
+      "法人身份证正面照片",
+      "image",
+      "jpeg|https://www.bumo.io/img_dpos/ab/8f/ce/acf0c8ba504b4639a916c142c02028e4.jpg|sha256|a9cd4908ad7ec1fc1cc8ec84641fa55b3abb93a731625e7eb17d2c41babe9f25",
+      "-",
+      "-"
+    ],
+    "6": [
+      "0",
+      "法人身份证反面照片",
+      "image",
+      "jpeg|https://www.bumo.io/img_dpos/ab/8f/ce/acf0c8ba504b4639a916c142c02028e4.jpg|sha256|a9cd4908ad7ec1fc1cc8ec84641fa55b3abb93a731625e7eb17d2c41babe9f25",
+      "-",
+      "-"
+    ],
+    "id": [ "parentId", "name", "type", "value", "decimals", "uint" ]
+  },
+  "companyShortName": "BUMO",
+  "companyContact": "4bvm820bveyt1xmxokijsgx4vxv5ypxntr98npfcrxklfimlqg9d5to0tw9e5usb"
+}
