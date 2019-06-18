@@ -21,8 +21,6 @@ const DESCRIPTION = pkg.description
 
 const _exit = process.exit
 
-// Re-assign process.exit because of commander
-// TODO: Switch to a different command framework
 process.exit = exit
 
 program
@@ -31,12 +29,12 @@ program
   .description(DESCRIPTION)
   .usage('[options]')
   .option('-p, --publish', 'publish atp60')
-  .option('-c, --create', 'create project name')
+  .option('-c, --create', 'create dir and initInput template')
   .option('-k, --key <key>', 'private key')
   .option('-i, --input <input>', 'input argument for atp60')
   .option('-d, --address <address>', 'atp60 address')
   .option('-H, --host <host>', 'atp60 address')
-  .option('-n, --appName <app_name>', 'app name')
+  .option('-n, --dirName <dir_name>', 'dir name')
 
 program.on('--help', function () {
   console.log('')
@@ -52,13 +50,12 @@ program.on('--help', function () {
 program.parse(process.argv)
 
 if (!exit.exited) {
-  // main()
-
-  // return
   if (program.create) {
-    if (!program.appName) {
-      console.log(colors.yellow(`option '-n, --appName <app_name>' argument missing`))
+    if (!program.dirName) {
+      console.log(colors.yellow(`option '-n, --dirName <dir_name>' argument missing`))
+      _exit(1)
     }
+    main(program.dirName)
   }
   // 发布合约
   if (program.publish) {
@@ -68,13 +65,14 @@ if (!exit.exited) {
     if (!program.host) {
       console.log(colors.yellow(`option '-h, --host <host>' argument missing`))
     }
-    const initInputExists = fs.existsSync(path.join('./', `initInput${path.sep}index.json`))
+    const initInputPath = `initInput${path.sep}index.json`
+    const initInputExists = fs.existsSync(path.join(process.cwd(), initInputPath))
     if (!initInputExists) {
       console.log(colors.red('initInput template is not exists'))
       _exit(1)
     }
     // 读取initInputTempate内容
-    let initInput = fs.readFileSync(path.join(process.cwd(), `initInput${path.sep}index.json`), 'utf-8')
+    let initInput = fs.readFileSync(path.join(process.cwd(), initInputPath), 'utf-8')
     initInput = JSON.parse(initInput)
     lib.createContract(program.host, program.key, initInput)
       .then(data => {
@@ -94,11 +92,12 @@ function makeBlue (txt) {
  * Main program.
  */
 
-function main () {
+function main (name) {
   // Path
-  const destinationPath = program.args.shift() || '.'
+  // const destinationPath = program.args.shift() || '.'
+  const destinationPath = name
   // App name
-  const appName = createAppName(path.resolve(destinationPath)) || 'hello-world'
+  const appName = createAppName(path.resolve(destinationPath)) || 'atp60'
   // Generate application
   emptyDirectory(destinationPath, function (empty) {
     if (empty || program.force) {
