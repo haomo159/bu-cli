@@ -155,6 +155,34 @@ if (!exit.exited) {
           }
         })
         console.log('======= end ========')
+        const isExists = fs.existsSync(path.join(process.cwd(), 'accountInfo'))
+        if (!isExists) {
+          console.log(colors.yellow(`accountInfo file not Exists`))
+          _exit(1)
+        } else {
+          let accountList = fs.readFileSync(path.join(process.cwd(), 'accountInfo'), 'utf-8')
+          accountList = JSON.parse(accountList)
+          // 一个用户一次处理的操作是有限的
+          // 能处理多少，算多少
+          // 把失败的操作和bu不够用的账户放到错误日志中
+          for (let index in accountList) {
+            // console.log(colors.green(accountList[ index ]))
+            const rows = results.splice(0, 80)
+            // 交易的发起者必须是合约创建者
+            // 解决方案：
+            //   交易的最外层 sourceAddress 是 账户池中的地址
+            //   交易内容 operation 中的sourceAddress 必须是 合约发起者
+            lib.createSku(program.host, program.key, program.address, rows, accountList[ index ]['privateKey'], accountList[ index ]['address'])
+              .then(data => {
+                console.log(data)
+              })
+              .catch(err => {
+                console.log(err)
+              })
+          }
+          console.log(results.length)
+        }
+
         // lib.createSku(program.host, program.key, program.address, results)
         //   .then(data => {
         //     console.log(data)
@@ -306,7 +334,7 @@ function confirm (msg, callback) {
  * Copy file from template directory.
  */
 
-function copyTemplatecopyTemplate (from, to) {
+function copyTemplate (from, to) {
   write(to, fs.readFileSync(path.join(TEMPLATE_DIR, from), 'utf-8'))
 }
 
