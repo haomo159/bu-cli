@@ -8,6 +8,7 @@ const fs = require('fs')
 const path = require('path')
 const mkdirp = require('mkdirp')
 const readline = require('readline')
+const csv = require('csv-parser')
 const program = new commander.Command()
 
 const pkg = require('../package')
@@ -30,9 +31,12 @@ program
   .usage('[options]')
   .option('-p, --publish', 'publish atp60')
   .option('-c, --create', 'create dir and initInput template')
+  .option('-g, --generate', 'generate account')
+  .option('-N, --number <number>', 'number of account')
+  .option('-i, --input', 'import sku information')
   .option('-k, --key <key>', 'private key')
-  .option('-i, --input <input>', 'input argument for atp60')
-  .option('-d, --address <address>', 'atp60 address')
+  .option('-f, --file <file>', 'the path of csv file')
+  .option('-d, --address <contract_address>', 'contract address')
   .option('-H, --host <host>', 'atp60 address')
   .option('-n, --dirName <dir_name>', 'dir name')
 
@@ -61,9 +65,11 @@ if (!exit.exited) {
   if (program.publish) {
     if (!program.key) {
       console.log(colors.yellow(`option '-k, --key <key>' argument missing`))
+      _exit(1)
     }
     if (!program.host) {
       console.log(colors.yellow(`option '-h, --host <host>' argument missing`))
+      _exit(1)
     }
     const initInputPath = `initInput${path.sep}index.json`
     const initInputExists = fs.existsSync(path.join(process.cwd(), initInputPath))
@@ -80,6 +86,82 @@ if (!exit.exited) {
       })
       .catch(err => {
         console.log(err)
+      })
+  }
+  // 批量创建账户(一次50个账户)
+  if (program.generate) {
+    if (!program.key) {
+      console.log(colors.yellow(`option '-k, --key <key>' argument missing`))
+      _exit(1)
+    }
+    if (!program.host) {
+      console.log(colors.yellow(`option '-h, --host <host>' argument missing`))
+      _exit(1)
+    }
+    if (!program.number) {
+      console.log(colors.yellow(`option '-N, --number <number>' argument missing`))
+      _exit(1)
+    }
+    lib.generateAccount(program.host, program.key, program.number)
+      .then(data => {
+        if (data.transactionInfo.errorCode === 0) {
+          const accountListStr = JSON.stringify(data.accountList)
+          // 存储账户文件
+          const isExists = fs.existsSync(path.join(process.cwd(), 'accountInfo'))
+          if (isExists) {
+            let accountInfo = fs.readFileSync(path.join(process.cwd(), 'accountInfo'), 'utf-8')
+            accountInfo = JSON.parse(accountInfo)
+            accountInfo = accountInfo.concat(data.accountList)
+            write(path.join(process.cwd(), 'accountInfo'), JSON.stringify(accountInfo))
+          } else {
+            write(path.join(process.cwd(), 'accountInfo'), accountListStr)
+          }
+        }
+      })
+      .catch(err => {
+        console.log(err)
+      })
+  }
+  // 导入sku信息
+  if (program.input) {
+    if (!program.key) {
+      console.log(colors.yellow(`option '-k, --key <key>' argument missing`))
+      _exit(1)
+    }
+    if (!program.host) {
+      console.log(colors.yellow(`option '-h, --host <host>' argument missing`))
+      _exit(1)
+    }
+    if (!program.address) {
+      console.log(colors.yellow(`option '-d, --address <file>' argument missing`))
+      _exit(1)
+    }
+    if (!program.file) {
+      console.log(colors.yellow(`option '-f, --file <file>' argument missing`))
+      _exit(1)
+    }
+    const csvPath = path.join(process.cwd(), program.file)
+    const results = []
+
+    fs.createReadStream(csvPath)
+      .pipe(csv())
+      .on('data', (data) => results.push(data))
+      .on('end', () => {
+        console.log('====== begin =======')
+        // console.log(results)
+        results.forEach(item => {
+          if (item.packageId === '93169ab0d3194cd78e0faaab7574d313end') {
+            console.log(item.tokenId)
+          }
+        })
+        console.log('======= end ========')
+        // lib.createSku(program.host, program.key, program.address, results)
+        //   .then(data => {
+        //     console.log(data)
+        //   })
+        //   .catch(err => {
+        //     console.log(err)
+        //   })
       })
   }
 }
@@ -224,7 +306,7 @@ function confirm (msg, callback) {
  * Copy file from template directory.
  */
 
-function copyTemplate (from, to) {
+function copyTemplatecopyTemplate (from, to) {
   write(to, fs.readFileSync(path.join(TEMPLATE_DIR, from), 'utf-8'))
 }
 
