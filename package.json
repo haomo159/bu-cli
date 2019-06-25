@@ -10,7 +10,7 @@
   "main": "bin/bu-cli.js",
   "preferGlobal": true,
   "bin": {
-    "bu": "./bin/bu-atp61-cli.js"
+    "bu-atp61": "./bin/bu-atp61-cli.js"
   },
   "dependencies": {
     "bignumber.js": "^9.0.0",
