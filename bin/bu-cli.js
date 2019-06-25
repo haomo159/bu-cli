@@ -9,6 +9,8 @@ const path = require('path')
 const mkdirp = require('mkdirp')
 const readline = require('readline')
 const csv = require('csv-parser')
+const splitArray = require('split-array')
+const sleepSeconds = require('sleepjs').sleepSeconds
 const program = new commander.Command()
 
 const pkg = require('../package')
@@ -25,11 +27,11 @@ const _exit = process.exit
 process.exit = exit
 
 program
-  .name('bu-atp60')
+  .name('bu-atp61')
   .version(VERSION)
   .description(DESCRIPTION)
   .usage('[options]')
-  .option('-p, --publish', 'publish atp60')
+  .option('-p, --publish', 'publish atp61')
   .option('-c, --create', 'create dir and initInput template')
   .option('-g, --generate', 'generate account')
   .option('-N, --number <number>', 'number of account')
@@ -37,17 +39,22 @@ program
   .option('-k, --key <key>', 'private key')
   .option('-f, --file <file>', 'the path of csv file')
   .option('-d, --address <contract_address>', 'contract address')
-  .option('-H, --host <host>', 'atp60 address')
-  .option('-n, --dirName <dir_name>', 'dir name')
+  .option('-H, --host <host>', 'atp61 address')
+  .option('-D, --dirName <dir_name>', 'dir name')
+  .option('-t, --test', 'for test')
 
 program.on('--help', function () {
   console.log('')
   console.log(makeBlue('Examples:'))
   console.log('  # help')
-  console.log(makeBlue('  $ bu-atp60 --help'))
-  console.log(makeBlue('  $ bu-atp60 -h'))
-  console.log('  # publish atp60')
-  console.log(makeBlue('  $ bu-atp60 -p -H host -k private_key -i input_string'))
+  console.log(makeBlue('  $ bu-atp61 --help'))
+  console.log(makeBlue('  $ bu-atp61 -h'))
+  console.log('  # initialize directory')
+  console.log(makeBlue('  $ bu-atp61 -c -D <dir_name>'))
+  console.log('  # publish atp61 contract')
+  console.log(makeBlue('  $ bu-atp61 -p -H host -k private_key -i input_string'))
+  console.log('  # generate multiple accounts')
+  console.log(makeBlue('  $ bu-atp61 -g -k <private_key> -H <host> -N <number'))
   console.log('')
 })
 
@@ -147,14 +154,6 @@ if (!exit.exited) {
       .pipe(csv())
       .on('data', (data) => results.push(data))
       .on('end', () => {
-        console.log('====== begin =======')
-        // console.log(results)
-        results.forEach(item => {
-          if (item.packageId === '93169ab0d3194cd78e0faaab7574d313end') {
-            console.log(item.tokenId)
-          }
-        })
-        console.log('======= end ========')
         const isExists = fs.existsSync(path.join(process.cwd(), 'accountInfo'))
         if (!isExists) {
           console.log(colors.yellow(`accountInfo file not Exists`))
@@ -162,36 +161,82 @@ if (!exit.exited) {
         } else {
           let accountList = fs.readFileSync(path.join(process.cwd(), 'accountInfo'), 'utf-8')
           accountList = JSON.parse(accountList)
-          // 一个用户一次处理的操作是有限的
-          // 能处理多少，算多少
-          // 把失败的操作和bu不够用的账户放到错误日志中
-          for (let index in accountList) {
-            // console.log(colors.green(accountList[ index ]))
-            const rows = results.splice(0, 80)
-            // 交易的发起者必须是合约创建者
-            // 解决方案：
-            //   交易的最外层 sourceAddress 是 账户池中的地址
-            //   交易内容 operation 中的sourceAddress 必须是 合约发起者
-            lib.createSku(program.host, program.key, program.address, rows, accountList[ index ]['privateKey'], accountList[ index ]['address'])
-              .then(data => {
-                console.log(data)
-              })
-              .catch(err => {
-                console.log(err)
-              })
-          }
-          console.log(results.length)
+          // const tmpArr = repeat(count)
+          const newData = splitArray(results, accountList.length * 2)
+          const retryCount = newData.length
+          setSku(newData, accountList, retryCount)
+            .then(data => {
+              console.log('====== bof: 111111111111')
+              console.log(data)
+              console.log('====== eof: 111111111111')
+            })
+            .catch(err => {
+              console.log(err)
+            })
         }
-
-        // lib.createSku(program.host, program.key, program.address, results)
-        //   .then(data => {
-        //     console.log(data)
-        //   })
-        //   .catch(err => {
-        //     console.log(err)
-        //   })
       })
   }
+
+  // 创建承兑信息
+  if (program.test) {
+    if (!program.key) {
+      console.log(colors.yellow(`option '-k, --key <key>' argument missing`))
+      _exit(1)
+    }
+    if (!program.host) {
+      console.log(colors.yellow(`option '-h, --host <host>' argument missing`))
+      _exit(1)
+    }
+    if (!program.address) {
+      console.log(colors.yellow(`option '-d, --address <file>' argument missing`))
+      _exit(1)
+    }
+    lib.setAcceptance(program.host, program.key, program.address)
+      .then(data => {
+        console.log(data)
+      })
+      .catch(err => {
+        console.log(err)
+      })
+  }
+}
+
+/**
+ * set sku information
+ * @param {Array} data
+ * @param {Array} accountList
+ * @param {Number} retryCount
+ * @returns {Promise<string>}
+ */
+const setSku = async (data, accountList, retryCount) => {
+  while (retryCount > 0) {
+    console.log(colors.blue(`=================== current queue: (${retryCount}) ===================`))
+    console.log(colors.blue(`=================== current queue: ${retryCount} ===================`))
+    for (let index in accountList) {
+      const rows = data.splice(0, 1)
+      if (Array.isArray(rows) &&
+        rows[0] !== undefined &&
+        rows[0].length > 0) {
+        const info = await lib.createSku({
+          host: program.host,
+          privateKey: program.key,
+          contractAddress: program.address,
+          data: rows[0].splice(0, 2),
+          submitPrivateKey: accountList[ index ]['privateKey'],
+          submitAddress: accountList[ index ]['address']
+        })
+
+        if (info.errorCode !== 0) {
+          console.log(`${colors.red('[failure]')} the token is: ${JSON.stringify(info.tokenList)}`)
+        } else {
+          console.log(`${colors.green('[SUCCESS]')} the hash is: ${JSON.stringify(info.result.hash)}`)
+        }
+      }
+    }
+    await sleepSeconds(20)
+    retryCount = retryCount - 1
+  }
+  return 'set sku information finished'
 }
 
 function makeBlue (txt) {
@@ -207,7 +252,7 @@ function main (name) {
   // const destinationPath = program.args.shift() || '.'
   const destinationPath = name
   // App name
-  const appName = createAppName(path.resolve(destinationPath)) || 'atp60'
+  const appName = createAppName(path.resolve(destinationPath)) || 'atp61'
   // Generate application
   emptyDirectory(destinationPath, function (empty) {
     if (empty || program.force) {
