@@ -1,7 +1,7 @@
 {
   "name": "bu-atp61-cli",
   "version": "1.0.0",
-  "description": "A simple CLI for bumo atp60",
+  "description": "A simple CLI for bumo atp61",
   "scripts": {
     "test": "mocha"
   },
