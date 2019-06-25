@@ -1,5 +1,5 @@
 {
-  "name": "bu-atp60-cli",
+  "name": "bu-atp61-cli",
   "version": "1.0.0",
   "description": "A simple CLI for bumo atp60",
   "scripts": {
@@ -7,7 +7,7 @@
   },
   "author": "",
   "license": "ISC",
-  "main": "bin/bu-cli.js",
+  "main": "bin/bu-atp61-cli.js",
   "preferGlobal": true,
   "bin": {
     "bu-atp61": "./bin/bu-atp61-cli.js"
