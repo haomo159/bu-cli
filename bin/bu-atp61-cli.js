@@ -24,7 +24,7 @@ const DESCRIPTION = pkg.description
 
 const _exit = process.exit
 
-process.exit = exit
+// process.exit = exit
 
 program
   .name('bu-atp61')
@@ -45,16 +45,16 @@ program
 
 program.on('--help', function () {
   console.log('')
-  console.log(makeBlue('Examples:'))
+  console.log(colors.blue('Examples:'))
   console.log('  # help')
-  console.log(makeBlue('  $ bu-atp61 --help'))
-  console.log(makeBlue('  $ bu-atp61 -h'))
+  console.log(colors.blue('  $ bu-atp61 --help'))
+  console.log(colors.blue('  $ bu-atp61 -h'))
   console.log('  # initialize directory')
-  console.log(makeBlue('  $ bu-atp61 -c -D <dir_name>'))
+  console.log(colors.blue('  $ bu-atp61 -c -D <dir_name>'))
   console.log('  # publish atp61 contract')
-  console.log(makeBlue('  $ bu-atp61 -p -H host -k private_key -i input_string'))
+  console.log(colors.blue('  $ bu-atp61 -p -H host -k private_key -i input_string'))
   console.log('  # generate multiple accounts')
-  console.log(makeBlue('  $ bu-atp61 -g -k <private_key> -H <host> -N <number'))
+  console.log(colors.blue('  $ bu-atp61 -g -k <private_key> -H <host> -N <number'))
   console.log('')
 })
 
