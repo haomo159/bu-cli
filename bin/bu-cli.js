@@ -8,6 +8,9 @@ const fs = require('fs')
 const path = require('path')
 const mkdirp = require('mkdirp')
 const readline = require('readline')
+const csv = require('csv-parser')
+const splitArray = require('split-array')
+const sleepSeconds = require('sleepjs').sleepSeconds
 const program = new commander.Command()
 
 const pkg = require('../package')
@@ -24,26 +27,34 @@ const _exit = process.exit
 process.exit = exit
 
 program
-  .name('bu-atp60')
+  .name('bu-atp61')
   .version(VERSION)
   .description(DESCRIPTION)
   .usage('[options]')
-  .option('-p, --publish', 'publish atp60')
+  .option('-p, --publish', 'publish atp61')
   .option('-c, --create', 'create dir and initInput template')
+  .option('-g, --generate', 'generate account')
+  .option('-N, --number <number>', 'number of account')
+  .option('-i, --input', 'import sku information')
   .option('-k, --key <key>', 'private key')
-  .option('-i, --input <input>', 'input argument for atp60')
-  .option('-d, --address <address>', 'atp60 address')
-  .option('-H, --host <host>', 'atp60 address')
-  .option('-n, --dirName <dir_name>', 'dir name')
+  .option('-f, --file <file>', 'the path of csv file')
+  .option('-d, --address <contract_address>', 'contract address')
+  .option('-H, --host <host>', 'atp61 address')
+  .option('-D, --dirName <dir_name>', 'dir name')
+  .option('-t, --test', 'for test')
 
 program.on('--help', function () {
   console.log('')
   console.log(makeBlue('Examples:'))
   console.log('  # help')
-  console.log(makeBlue('  $ bu-atp60 --help'))
-  console.log(makeBlue('  $ bu-atp60 -h'))
-  console.log('  # publish atp60')
-  console.log(makeBlue('  $ bu-atp60 -p -H host -k private_key -i input_string'))
+  console.log(makeBlue('  $ bu-atp61 --help'))
+  console.log(makeBlue('  $ bu-atp61 -h'))
+  console.log('  # initialize directory')
+  console.log(makeBlue('  $ bu-atp61 -c -D <dir_name>'))
+  console.log('  # publish atp61 contract')
+  console.log(makeBlue('  $ bu-atp61 -p -H host -k private_key -i input_string'))
+  console.log('  # generate multiple accounts')
+  console.log(makeBlue('  $ bu-atp61 -g -k <private_key> -H <host> -N <number'))
   console.log('')
 })
 
@@ -61,9 +72,11 @@ if (!exit.exited) {
   if (program.publish) {
     if (!program.key) {
       console.log(colors.yellow(`option '-k, --key <key>' argument missing`))
+      _exit(1)
     }
     if (!program.host) {
       console.log(colors.yellow(`option '-h, --host <host>' argument missing`))
+      _exit(1)
     }
     const initInputPath = `initInput${path.sep}index.json`
     const initInputExists = fs.existsSync(path.join(process.cwd(), initInputPath))
@@ -82,6 +95,148 @@ if (!exit.exited) {
         console.log(err)
       })
   }
+  // 批量创建账户(一次50个账户)
+  if (program.generate) {
+    if (!program.key) {
+      console.log(colors.yellow(`option '-k, --key <key>' argument missing`))
+      _exit(1)
+    }
+    if (!program.host) {
+      console.log(colors.yellow(`option '-h, --host <host>' argument missing`))
+      _exit(1)
+    }
+    if (!program.number) {
+      console.log(colors.yellow(`option '-N, --number <number>' argument missing`))
+      _exit(1)
+    }
+    lib.generateAccount(program.host, program.key, program.number)
+      .then(data => {
+        if (data.transactionInfo.errorCode === 0) {
+          const accountListStr = JSON.stringify(data.accountList)
+          // 存储账户文件
+          const isExists = fs.existsSync(path.join(process.cwd(), 'accountInfo'))
+          if (isExists) {
+            let accountInfo = fs.readFileSync(path.join(process.cwd(), 'accountInfo'), 'utf-8')
+            accountInfo = JSON.parse(accountInfo)
+            accountInfo = accountInfo.concat(data.accountList)
+            write(path.join(process.cwd(), 'accountInfo'), JSON.stringify(accountInfo))
+          } else {
+            write(path.join(process.cwd(), 'accountInfo'), accountListStr)
+          }
+        }
+      })
+      .catch(err => {
+        console.log(err)
+      })
+  }
+  // 导入sku信息
+  if (program.input) {
+    if (!program.key) {
+      console.log(colors.yellow(`option '-k, --key <key>' argument missing`))
+      _exit(1)
+    }
+    if (!program.host) {
+      console.log(colors.yellow(`option '-h, --host <host>' argument missing`))
+      _exit(1)
+    }
+    if (!program.address) {
+      console.log(colors.yellow(`option '-d, --address <file>' argument missing`))
+      _exit(1)
+    }
+    if (!program.file) {
+      console.log(colors.yellow(`option '-f, --file <file>' argument missing`))
+      _exit(1)
+    }
+    const csvPath = path.join(process.cwd(), program.file)
+    const results = []
+
+    fs.createReadStream(csvPath)
+      .pipe(csv())
+      .on('data', (data) => results.push(data))
+      .on('end', () => {
+        const isExists = fs.existsSync(path.join(process.cwd(), 'accountInfo'))
+        if (!isExists) {
+          console.log(colors.yellow(`accountInfo file not Exists`))
+          _exit(1)
+        } else {
+          let accountList = fs.readFileSync(path.join(process.cwd(), 'accountInfo'), 'utf-8')
+          accountList = JSON.parse(accountList)
+          // const tmpArr = repeat(count)
+          const newData = splitArray(results, accountList.length * 2)
+          const retryCount = newData.length
+          setSku(newData, accountList, retryCount)
+            .then(data => {
+              console.log('====== bof: 111111111111')
+              console.log(data)
+              console.log('====== eof: 111111111111')
+            })
+            .catch(err => {
+              console.log(err)
+            })
+        }
+      })
+  }
+
+  // 创建承兑信息
+  if (program.test) {
+    if (!program.key) {
+      console.log(colors.yellow(`option '-k, --key <key>' argument missing`))
+      _exit(1)
+    }
+    if (!program.host) {
+      console.log(colors.yellow(`option '-h, --host <host>' argument missing`))
+      _exit(1)
+    }
+    if (!program.address) {
+      console.log(colors.yellow(`option '-d, --address <file>' argument missing`))
+      _exit(1)
+    }
+    lib.setAcceptance(program.host, program.key, program.address)
+      .then(data => {
+        console.log(data)
+      })
+      .catch(err => {
+        console.log(err)
+      })
+  }
+}
+
+/**
+ * set sku information
+ * @param {Array} data
+ * @param {Array} accountList
+ * @param {Number} retryCount
+ * @returns {Promise<string>}
+ */
+const setSku = async (data, accountList, retryCount) => {
+  while (retryCount > 0) {
+    console.log(colors.blue(`=================== current queue: (${retryCount}) ===================`))
+    console.log(colors.blue(`=================== current queue: ${retryCount} ===================`))
+    for (let index in accountList) {
+      const rows = data.splice(0, 1)
+      if (Array.isArray(rows) &&
+        rows[0] !== undefined &&
+        rows[0].length > 0) {
+        const info = await lib.createSku({
+          host: program.host,
+          privateKey: program.key,
+          contractAddress: program.address,
+          data: rows[0].splice(0, 2),
+          submitPrivateKey: accountList[ index ]['privateKey'],
+          submitAddress: accountList[ index ]['address']
+        })
+
+        if (info.errorCode !== 0) {
+          console.log(`${colors.red('[failure]')} the token is: ${JSON.stringify(info.tokenList)}`)
+        } else {
+          console.log(`${colors.green('[SUCCESS]')} the hash is: ${JSON.stringify(info.result.hash)}`)
+        }
+      }
+    }
+    await sleepSeconds(20)
+    retryCount = retryCount - 1
+  }
+  return 'set sku information finished'
 }
 
 function makeBlue (txt) {
@@ -97,7 +252,7 @@ function main (name) {
   // const destinationPath = program.args.shift() || '.'
   const destinationPath = name
   // App name
-  const appName = createAppName(path.resolve(destinationPath)) || 'atp60'
+  const appName = createAppName(path.resolve(destinationPath)) || 'atp61'
   // Generate application
   emptyDirectory(destinationPath, function (empty) {
     if (empty || program.force) {

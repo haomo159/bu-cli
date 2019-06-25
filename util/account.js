@@ -5,12 +5,18 @@ const KeyPair = encryption.keypair
 
 const getAddress = function getAddress (privateKey) {
   // Get encPublicKey
-  let encPublicKey = KeyPair.getEncPublicKey(privateKey)
+  const encPublicKey = KeyPair.getEncPublicKey(privateKey)
   // Get address
   const address = KeyPair.getAddress(encPublicKey)
   return address
 }
+const getPublicKey = function getAddress (privateKey) {
+  // Get encPublicKey
+  const encPublicKey = KeyPair.getEncPublicKey(privateKey)
+  return encPublicKey
+}
 
 module.exports = {
-  getAddress: getAddress
+  getAddress: getAddress,
+  getPublicKey: getPublicKey
 }
