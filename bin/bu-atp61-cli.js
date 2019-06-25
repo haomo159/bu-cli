@@ -244,10 +244,6 @@ const setSku = async (data, accountList, retryCount) => {
   return 'set sku information finished'
 }
 
-function makeBlue (txt) {
-  return colors.blue(txt)
-}
-
 /**
  * Main program.
  */
