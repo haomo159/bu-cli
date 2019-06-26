@@ -35,7 +35,7 @@ program
   .option('-c, --create', 'create dir and initInput template')
   .option('-g, --generate', 'generate account')
   .option('-N, --number <number>', 'number of account')
-  .option('-i, --input', 'import sku information')
+  .option('-i, --import', 'import sku information')
   .option('-k, --key <key>', 'private key')
   .option('-f, --file <file>', 'the path of csv file')
   .option('-d, --address <contract_address>', 'contract address')
@@ -52,7 +52,7 @@ program.on('--help', function () {
   console.log('  # version')
   console.log(colors.blue('  $ bu-atp61 -V'))
   console.log(colors.blue('  $ bu-atp61 --version'))
-  console.log('  # initialize directory')
+  console.log('  # create initialize directory')
   console.log(colors.blue('  $ bu-atp61 -c -D <dir_name>'))
   console.log('  # publish atp61 contract')
   console.log(colors.blue('  $ bu-atp61 -p -k <private_key> -H <host>'))
@@ -66,21 +66,27 @@ program.on('--help', function () {
 program.parse(process.argv)
 
 if (!exit.exited) {
+  // ====================================
+  // create initialize directory
+  // ====================================
   if (program.create) {
     if (!program.dirName) {
-      console.log(colors.yellow(`option '-n, --dirName <dir_name>' argument missing`))
+      console.log(colors.yellow(`option '-D, --dirName <dir_name>' argument missing`))
       _exit(1)
     }
-    main(program.dirName)
+    createDir(program.dirName)
   }
-  // 发布合约
+
+  // ====================================
+  // publish atp61 contract
+  // ====================================
   if (program.publish) {
     if (!program.key) {
       console.log(colors.yellow(`option '-k, --key <key>' argument missing`))
       _exit(1)
     }
     if (!program.host) {
-      console.log(colors.yellow(`option '-h, --host <host>' argument missing`))
+      console.log(colors.yellow(`option '-H, --host <host>' argument missing`))
       _exit(1)
     }
     const initInputPath = `initInput${path.sep}index.json`
@@ -89,7 +95,7 @@ if (!exit.exited) {
       console.log(colors.red('initInput template is not exists'))
       _exit(1)
     }
-    // 读取initInputTempate内容
+    // read initInput template content
     let initInput = fs.readFileSync(path.join(process.cwd(), initInputPath), 'utf-8')
     initInput = JSON.parse(initInput)
     lib.createContract(program.host, program.key, initInput)
@@ -100,14 +106,17 @@ if (!exit.exited) {
         console.log(err)
       })
   }
-  // 批量创建账户(一次50个账户)
+
+  // ====================================
+  // generate multiple accounts
+  // ====================================
   if (program.generate) {
     if (!program.key) {
       console.log(colors.yellow(`option '-k, --key <key>' argument missing`))
       _exit(1)
     }
     if (!program.host) {
-      console.log(colors.yellow(`option '-h, --host <host>' argument missing`))
+      console.log(colors.yellow(`option '-H, --host <host>' argument missing`))
       _exit(1)
     }
     if (!program.number) {
@@ -118,7 +127,7 @@ if (!exit.exited) {
       .then(data => {
         if (data.transactionInfo.errorCode === 0) {
           const accountListStr = JSON.stringify(data.accountList)
-          // 存储账户文件
+          // save account file
           const isExists = fs.existsSync(path.join(process.cwd(), 'accountInfo'))
           if (isExists) {
             let accountInfo = fs.readFileSync(path.join(process.cwd(), 'accountInfo'), 'utf-8')
@@ -134,14 +143,17 @@ if (!exit.exited) {
         console.log(err)
       })
   }
-  // 导入sku信息
-  if (program.input) {
+
+  // ====================================
+  // import sku information
+  // ====================================
+  if (program.import) {
     if (!program.key) {
       console.log(colors.yellow(`option '-k, --key <key>' argument missing`))
       _exit(1)
     }
     if (!program.host) {
-      console.log(colors.yellow(`option '-h, --host <host>' argument missing`))
+      console.log(colors.yellow(`option '-H, --host <host>' argument missing`))
       _exit(1)
     }
     if (!program.address) {
@@ -182,7 +194,7 @@ if (!exit.exited) {
       })
   }
 
-  // 创建承兑信息
+  // test (temporary)
   if (program.test) {
     if (!program.key) {
       console.log(colors.yellow(`option '-k, --key <key>' argument missing`))
@@ -244,10 +256,10 @@ const setSku = async (data, accountList, retryCount) => {
 }
 
 /**
- * Main program.
+ * create initialize directory
  */
 
-function main (name) {
+function createDir (name) {
   // Path
   // const destinationPath = program.args.shift() || '.'
   const destinationPath = name
