@@ -243,10 +243,10 @@ if (!exit.exited) {
  */
 const setSku = async (data, accountList, retryCount) => {
   while (retryCount > 0) {
+    const rows = data.splice(0, 1)
     console.log()
     console.log(colors.blue(`=================== current queue: (${retryCount}) ===================`))
     for (let index in accountList) {
-      const rows = data.splice(0, 1)
       if (Array.isArray(rows) &&
         rows[0] !== undefined &&
         rows[0].length > 0) {
