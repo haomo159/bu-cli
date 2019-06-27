@@ -383,7 +383,7 @@ function exit (code) {
 function mkdir (base, dir) {
   const loc = path.join(base, dir)
 
-  console.log('   \x1b[36mcreate\x1b[0m : ' + loc + path.sep)
+  console.log(colors.blue('   create : ') + loc + path.sep)
   mkdirp.sync(loc, MODE_0755)
 }
 
@@ -420,5 +420,5 @@ function copyTemplate (from, to) {
 
 function write (file, str, mode) {
   fs.writeFileSync(file, str, { mode: mode || MODE_0666 })
-  console.log('   \x1b[36mcreate\x1b[0m : ' + file)
+  console.log(colors.blue('   create : ') + file)
 }
