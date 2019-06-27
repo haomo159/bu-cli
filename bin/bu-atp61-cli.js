@@ -286,7 +286,7 @@ function createDir (name) {
     if (empty || program.force) {
       createApplication(appName, destinationPath)
     } else {
-      confirm('destination is not empty, continue? [y/N] ', function (ok) {
+      confirm(colors.yellow('destination is not empty, continue? [y/N] '), function (ok) {
         if (ok) {
           process.stdin.destroy()
           createApplication(appName, destinationPath)
