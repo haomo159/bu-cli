@@ -11,6 +11,7 @@ const readline = require('readline')
 const csv = require('csv-parser')
 const splitArray = require('split-array')
 const sleepSeconds = require('sleepjs').sleepSeconds
+const moment = require('moment')
 const program = new commander.Command()
 
 const pkg = require('../package')
@@ -166,6 +167,12 @@ if (!exit.exited) {
     }
     const csvPath = path.join(process.cwd(), program.file)
     const results = []
+    const csvPathIsExists = fs.existsSync(path.join(csvPath))
+
+    if (!csvPathIsExists) {
+      console.log(colors.yellow(`csv file not Exists`))
+      _exit(1)
+    }
 
     fs.createReadStream(csvPath)
       .pipe(csv())
@@ -176,6 +183,7 @@ if (!exit.exited) {
           console.log(colors.yellow(`accountInfo file not Exists`))
           _exit(1)
         } else {
+          const startingTime = moment().format('YYYY-MM-DD HH:mm:ss')
           let accountList = fs.readFileSync(path.join(process.cwd(), 'accountInfo'), 'utf-8')
           accountList = JSON.parse(accountList)
           // const tmpArr = repeat(count)
@@ -183,9 +191,17 @@ if (!exit.exited) {
           const retryCount = newData.length
           setSku(newData, accountList, retryCount)
             .then(data => {
-              console.log('====== bof: 111111111111')
-              console.log(data)
-              console.log('====== eof: 111111111111')
+              const endTime = moment().format('YYYY-MM-DD HH:mm:ss')
+              const takesTime = moment(endTime).diff(startingTime, 'seconds')
+              console.log()
+              console.log(colors.blue('[SUMMARY]: '))
+              console.log()
+              console.log(`  starting time: ${startingTime}`)
+              console.log(`  end time:      ${endTime}`)
+              console.log(`  it takes:      ${takesTime} seconds`)
+              console.log()
+              console.log(colors.green(`[${data}]`))
+              console.log()
             })
             .catch(err => {
               console.log(err)
@@ -201,7 +217,7 @@ if (!exit.exited) {
       _exit(1)
     }
     if (!program.host) {
-      console.log(colors.yellow(`option '-h, --host <host>' argument missing`))
+      console.log(colors.yellow(`option '-H, --host <host>' argument missing`))
       _exit(1)
     }
     if (!program.address) {
@@ -227,6 +243,7 @@ if (!exit.exited) {
  */
 const setSku = async (data, accountList, retryCount) => {
   while (retryCount > 0) {
+    console.log()
     console.log(colors.blue(`=================== current queue: (${retryCount}) ===================`))
     for (let index in accountList) {
       const rows = data.splice(0, 1)
@@ -241,7 +258,6 @@ const setSku = async (data, accountList, retryCount) => {
           submitPrivateKey: accountList[ index ]['privateKey'],
           submitAddress: accountList[ index ]['address']
         })
-
         if (info.errorCode !== 0) {
           console.log(`${colors.red('[failure]')} the token is: ${JSON.stringify(info.tokenList)}`)
         } else {
@@ -252,7 +268,7 @@ const setSku = async (data, accountList, retryCount) => {
     await sleepSeconds(20)
     retryCount = retryCount - 1
   }
-  return 'set sku information finished'
+  return 'DONE'
 }
 
 /**
