@@ -204,13 +204,13 @@ if (!exit.exited) {
               const endTime = moment().format('YYYY-MM-DD HH:mm:ss')
               const takesTime = moment(endTime).diff(startingTime, 'seconds')
               console.log()
-              console.log(colors.blue('[SUMMARY]: '))
+              console.log(colors.blue('  [SUMMARY]: '))
               console.log()
               console.log(`  starting time: ${startingTime}`)
               console.log(`  end time:      ${endTime}`)
               console.log(`  it takes:      ${takesTime} seconds`)
               console.log()
-              console.log(colors.green(`[${data}]`))
+              console.log(colors.green(`  [${data}]`))
               console.log()
             })
             .catch(err => {
@@ -270,7 +270,7 @@ const setSku = async (data, accountList, retryCount) => {
   while (retryCount > 0) {
     const rows = data.splice(0, 1)
     console.log()
-    console.log(colors.blue(`=================== current queue: (${retryCount}) ===================`))
+    console.log(colors.blue(`  =================== current queue: (${retryCount}) ===================`))
     for (let index in accountList) {
       if (Array.isArray(rows) &&
         rows[0] !== undefined &&
@@ -284,9 +284,9 @@ const setSku = async (data, accountList, retryCount) => {
           submitAddress: accountList[ index ]['address']
         })
         if (info.errorCode !== 0) {
-          console.log(`${colors.red('[failure]')} the token is: ${JSON.stringify(info.tokenList)}`)
+          console.log(`  ${colors.red('[failure]')} the token is: ${JSON.stringify(info.tokenList)}`)
         } else {
-          console.log(`${colors.green('[SUCCESS]')} the hash is: ${JSON.stringify(info.result.hash)}`)
+          console.log(`  ${colors.green('[SUCCESS]')} the hash is: ${JSON.stringify(info.result.hash)}`)
         }
       }
     }
@@ -345,6 +345,10 @@ function createApplication (name, dir) {
   // copy acceptanceInput template
   mkdir(dir, 'acceptanceInput')
   copyTemplate('acceptanceInput/index.json', path.join(dir, 'acceptanceInput/index.json'))
+
+  // copy sku template
+  mkdir(dir, 'skuInput')
+  copyTemplate('skuInput/index.json', path.join(dir, 'skuInput/index.json'))
 
   console.log()
 }
