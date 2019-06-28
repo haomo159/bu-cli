@@ -101,7 +101,15 @@ if (!exit.exited) {
     initInput = JSON.parse(initInput)
     lib.createContract(program.host, program.key, initInput)
       .then(data => {
-        console.log(data)
+        console.log()
+        if (data.errorCode === 0) {
+          const contractAddress = data.result.contractAddressList[0]['contract_address']
+          console.log(`${colors.green('   contract address:')} ${contractAddress}`)
+        } else {
+          console.log(`${colors.yellow(JSON.stringify(data))}`)
+        }
+        console.log()
+        console.log(colors.blue('   DONE'))
       })
       .catch(err => {
         console.log(err)
@@ -138,6 +146,8 @@ if (!exit.exited) {
           } else {
             write(path.join(process.cwd(), 'accountInfo'), accountListStr)
           }
+          console.log()
+          console.log(colors.blue('   DONE'))
         }
       })
       .catch(err => {
