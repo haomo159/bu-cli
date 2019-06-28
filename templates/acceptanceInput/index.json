@@ -1,0 +1,14 @@
+{
+  "id": "1223455",
+  "publicKey": "your public key",
+  "fullName": "承兑方全名",
+  "shortName": "MYDEMO",
+  "logo": "mylogo",
+  "contact": "my@bubi.cn",
+  "period": "7",
+  "addition": {
+    "id": [ "parentid", "name", "type", "value", "decimals", "uint" ],
+    "1": ["0", "承兑方地址", "text", "[承兑方地址]", "-", "-"],
+    "3": ["0", "承兑方邮编", "text", "[承兑方邮编]", "-", "-"]
+  }
+}

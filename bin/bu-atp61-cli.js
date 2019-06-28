@@ -317,6 +317,10 @@ function createApplication (name, dir) {
   mkdir(dir, 'initInput')
   copyTemplate('initInput/index.json', path.join(dir, 'initInput/index.json'))
 
+  // copy acceptanceInput template
+  mkdir(dir, 'acceptanceInput')
+  copyTemplate('acceptanceInput/index.json', path.join(dir, 'acceptanceInput/index.json'))
+
   console.log()
 }
 
