@@ -234,7 +234,22 @@ if (!exit.exited) {
       console.log(colors.yellow(`option '-d, --address <file>' argument missing`))
       _exit(1)
     }
-    lib.setAcceptance(program.host, program.key, program.address)
+    const acceptanceInputPath = `acceptanceInput${path.sep}index.json`
+    const acceptanceInputExists = fs.existsSync(path.join(process.cwd(), acceptanceInputPath))
+    if (!acceptanceInputExists) {
+      console.log(colors.red('   acceptanceInput template is not exists'))
+      _exit(1)
+    }
+    // read acceptanceInput template content
+    let acceptanceInput = fs.readFileSync(path.join(process.cwd(), acceptanceInputPath), 'utf-8')
+    acceptanceInput = JSON.parse(acceptanceInput)
+    // lib.setAcceptance(program.host, program.key, program.address, acceptanceInput)
+    lib.setAcceptance({
+      host: program.host,
+      privateKey: program.key,
+      contractAddress: program.address,
+      acceptanceInput: acceptanceInput
+    })
       .then(data => {
         console.log(data)
       })
