@@ -12,6 +12,7 @@ const csv = require('csv-parser')
 const splitArray = require('split-array')
 const sleepSeconds = require('sleepjs').sleepSeconds
 const moment = require('moment')
+const pLimit = require('p-limit')
 const program = new commander.Command()
 
 const pkg = require('../package')
@@ -193,26 +194,17 @@ if (!exit.exited) {
           console.log(colors.yellow(`accountInfo file not Exists`))
           _exit(1)
         } else {
-          const startingTime = moment().format('YYYY-MM-DD HH:mm:ss')
+          // const startingTime = moment().format('YYYY-MM-DD HH:mm:ss')
           let accountList = fs.readFileSync(path.join(process.cwd(), 'accountInfo'), 'utf-8')
           accountList = JSON.parse(accountList)
           // const tmpArr = repeat(count)
           const newData = splitArray(results, accountList.length * 2)
           const retryCount = newData.length
+          console.log()
+          console.log(colors.green(`  start importing user information ... ...`))
+          console.log()
           setSku(newData, accountList, retryCount)
-            .then(data => {
-              const endTime = moment().format('YYYY-MM-DD HH:mm:ss')
-              const takesTime = moment(endTime).diff(startingTime, 'seconds')
-              console.log()
-              console.log(colors.blue('  [SUMMARY]: '))
-              console.log()
-              console.log(`  starting time: ${startingTime}`)
-              console.log(`  end time:      ${endTime}`)
-              console.log(`  it takes:      ${takesTime} seconds`)
-              console.log()
-              console.log(colors.green(`  [${data}]`))
-              console.log()
-            })
+            .then(data => {})
             .catch(err => {
               console.log(err)
             })
@@ -267,30 +259,54 @@ if (!exit.exited) {
  * @returns {Promise<string>}
  */
 const setSku = async (data, accountList, retryCount) => {
+  const limit = pLimit(10)
   while (retryCount > 0) {
     const rows = data.splice(0, 1)
-    console.log()
-    console.log(colors.blue(`  =================== current queue: (${retryCount}) ===================`))
+    const promiseArray = []
     for (let index in accountList) {
       if (Array.isArray(rows) &&
         rows[0] !== undefined &&
         rows[0].length > 0) {
-        const info = await lib.createSku({
-          host: program.host,
-          privateKey: program.key,
-          contractAddress: program.address,
-          data: rows[0].splice(0, 2),
-          submitPrivateKey: accountList[ index ]['privateKey'],
-          submitAddress: accountList[ index ]['address']
-        })
-        if (info.errorCode !== 0) {
-          console.log(`  ${colors.red('[failure]')} the token is: ${JSON.stringify(info.tokenList)}`)
-        } else {
-          console.log(`  ${colors.green('[SUCCESS]')} the hash is: ${JSON.stringify(info.result.hash)}`)
-        }
+        const data = rows[0].splice(0, 2)
+        promiseArray.push(limit(() => {
+          return lib.createSku({
+            host: program.host,
+            privateKey: program.key,
+            contractAddress: program.address,
+            data: data,
+            submitPrivateKey: accountList[ index ]['privateKey'],
+            submitAddress: accountList[ index ]['address']
+          })
+        }))
       }
     }
-    await sleepSeconds(20)
+    const startingTime = moment().format('YYYY-MM-DD HH:mm:ss')
+    Promise.all(promiseArray)
+      .then(data => {
+        const endTime = moment().format('YYYY-MM-DD HH:mm:ss')
+        const takesTime = moment(endTime).diff(startingTime, 'seconds')
+        console.log()
+        console.log(colors.blue(`  =================== queue detail: ===================`))
+        if (Array.isArray(data) && data.length > 0) {
+          data.forEach(item => {
+            if (item.errorCode === 0) {
+              console.log(`  ${colors.green('[SUCCESS]')} the hash is: ${JSON.stringify(item.result.hash)}`)
+            } else {
+              console.log(`  ${colors.red('[failure]')} the token is: ${JSON.stringify(item.tokenList)}`)
+            }
+          })
+        }
+        console.log()
+        console.log(`  ${colors.blue('starting time:')} ${startingTime}`)
+        console.log(`  ${colors.blue('end time:')}      ${endTime}`)
+        console.log(`  ${colors.blue('it takes:')}      ${takesTime} seconds`)
+        console.log()
+      })
+      .catch(err => {
+        console.log('oh my god')
+        console.log(err)
+      })
+    await sleepSeconds(60)
     retryCount = retryCount - 1
   }
   return 'DONE'
