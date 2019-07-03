@@ -201,7 +201,7 @@ if (!exit.exited) {
           const newData = splitArray(results, accountList.length * 2)
           const retryCount = newData.length
           console.log()
-          console.log(colors.green(`  start importing user information ... ...`))
+          console.log(colors.green(`  start importing sku information ... ...`))
           console.log()
           setSku(newData, accountList, retryCount)
             .then(data => {})
@@ -292,7 +292,8 @@ const setSku = async (data, accountList, retryCount) => {
             if (item.errorCode === 0) {
               console.log(`  ${colors.green('[SUCCESS]')} the hash is: ${JSON.stringify(item.result.hash)}`)
             } else {
-              console.log(`  ${colors.red('[failure]')} the token is: ${JSON.stringify(item.tokenList)}`)
+              console.log(`  ${colors.red('[failure]')} the token is: ${JSON.stringify(item)}`)
+              // console.log(`  ${colors.red('[failure]')} the token is: ${JSON.stringify(item.tokenList)}`)
             }
           })
         }
@@ -303,8 +304,7 @@ const setSku = async (data, accountList, retryCount) => {
         console.log()
       })
       .catch(err => {
-        console.log('oh my god')
-        console.log(err)
+        console.log(`  ${colors.yellow('network anomaly')}`)
       })
     await sleepSeconds(60)
     retryCount = retryCount - 1
