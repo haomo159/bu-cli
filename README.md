@@ -1,11 +1,17 @@
 ## ATP61 sku批量导入工具
 
-### 安装方式
+### 安装
 
 >需要使用超级管理员权限，进行全局安装
 
 ```bash
 npm install https://github.com/martinlee159/bu-cli.git -g
+```
+
+### 卸载
+
+```bash
+npm uninstall bu-atp61-cli
 ```
 
 ### 使用方式
