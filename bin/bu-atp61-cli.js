@@ -176,6 +176,17 @@ if (!exit.exited) {
       console.log(colors.yellow(`option '-f, --file <file>' argument missing`))
       _exit(1)
     }
+
+    const skuInputPath = `skuInput${path.sep}index.json`
+    const skuInputExists = fs.existsSync(path.join(process.cwd(), skuInputPath))
+    if (!skuInputExists) {
+      console.log(colors.red('skuInput template is not exists'))
+      _exit(1)
+    }
+    // read initInput template content
+    let skuInput = fs.readFileSync(path.join(process.cwd(), skuInputPath), 'utf-8')
+    skuInput = JSON.parse(skuInput)
+
     const csvPath = path.join(process.cwd(), program.file)
     const results = []
     const csvPathIsExists = fs.existsSync(path.join(csvPath))
@@ -203,7 +214,7 @@ if (!exit.exited) {
           console.log()
           console.log(colors.green(`  start importing sku information ... ...`))
           console.log()
-          setSku(newData, accountList, retryCount)
+          setSku(newData, accountList, retryCount, skuInput)
             .then(data => {})
             .catch(err => {
               console.log(err)
@@ -258,7 +269,7 @@ if (!exit.exited) {
  * @param {Number} retryCount
  * @returns {Promise<string>}
  */
-const setSku = async (data, accountList, retryCount) => {
+const setSku = async (data, accountList, retryCount, skuInput) => {
   const limit = pLimit(10)
   while (retryCount > 0) {
     const rows = data.splice(0, 1)
@@ -275,7 +286,8 @@ const setSku = async (data, accountList, retryCount) => {
             contractAddress: program.address,
             data: data,
             submitPrivateKey: accountList[ index ]['privateKey'],
-            submitAddress: accountList[ index ]['address']
+            submitAddress: accountList[ index ]['address'],
+            params: skuInput
           })
         }))
       }
