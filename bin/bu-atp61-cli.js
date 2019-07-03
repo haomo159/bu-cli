@@ -204,7 +204,9 @@ if (!exit.exited) {
       .on('end', () => {
         const isExists = fs.existsSync(path.join(process.cwd(), 'accountInfo'))
         if (!isExists) {
+          console.log()
           console.log(colors.yellow(`accountInfo file not Exists`))
+          console.log()
           _exit(1)
         } else {
           if (results.length === 0) {
@@ -223,9 +225,9 @@ if (!exit.exited) {
             'size',
             'retailPrice'
           ]
-          filds = JSON.stringify(filds)
+          filds = JSON.stringify(filds.sort())
           let keys = Object.keys(results[0])
-          keys = JSON.stringify(keys)
+          keys = JSON.stringify(keys.sort())
           if (filds !== keys) {
             console.log()
             console.log(`  ${colors.yellow('csv file format is incorrect')}`)
