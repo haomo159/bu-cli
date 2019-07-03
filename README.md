@@ -50,12 +50,13 @@ bu-atp61 -g -k 账户私钥 -H 主机地址 -N 账户个数
 > 设置承兑方信息
 
 ```bash
-# 进入目录demo, 执行如下命令
+# 进入目录demo, 修改acceptanceInput/index.json文件, 执行如下命令
 bu-atp61 -s -k 账户私钥 -H 主机地址 -d 合约地址
 ```
 
 > 导入sku信息
 
 ```bash
+# 进入目录demo, 修改修改skuInput/index.json文件, 执行如下命令
 bu-atp61 -i -k 账户私钥 -H 主机地址 -d 合约地址 -f csv文件目录(特定结构)
 ```
