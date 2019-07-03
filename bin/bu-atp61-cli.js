@@ -207,6 +207,31 @@ if (!exit.exited) {
           console.log(colors.yellow(`accountInfo file not Exists`))
           _exit(1)
         } else {
+          if (results.length === 0) {
+            console.log()
+            console.log(`  ${colors.yellow('csv file content cannot be empty')}`)
+            console.log()
+            _exit(1)
+          }
+          let filds = [
+            'packageId',
+            'tokenId',
+            'brand',
+            'category',
+            'productCode',
+            'listingDate',
+            'size',
+            'retailPrice'
+          ]
+          filds = JSON.stringify(filds)
+          let keys = Object.keys(results[0])
+          keys = JSON.stringify(keys)
+          if (filds !== keys) {
+            console.log()
+            console.log(`  ${colors.yellow('csv file format is incorrect')}`)
+            console.log()
+            _exit(1)
+          }
           // const startingTime = moment().format('YYYY-MM-DD HH:mm:ss')
           let accountList = fs.readFileSync(path.join(process.cwd(), 'accountInfo'), 'utf-8')
           accountList = JSON.parse(accountList)
