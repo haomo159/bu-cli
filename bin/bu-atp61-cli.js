@@ -43,7 +43,7 @@ program
   .option('-d, --address <contract_address>', 'contract address')
   .option('-H, --host <host>', 'atp61 address')
   .option('-D, --dirName <dir_name>', 'dir name')
-  .option('-t, --test', 'for test')
+  .option('-s, --setAcceptance', 'set acceptance')
 
 program.on('--help', function () {
   console.log('')
@@ -60,6 +60,8 @@ program.on('--help', function () {
   console.log(colors.blue('  $ bu-atp61 -p -k <private_key> -H <host>'))
   console.log('  # generate multiple accounts')
   console.log(colors.blue('  $ bu-atp61 -g -k <private_key> -H <host> -N <number>'))
+  console.log('  # set acceptance')
+  console.log(colors.blue('  $ bu-atp61 -s -k <private_key> -H <host> -d <contract_address>'))
   console.log('  # import sku information')
   console.log(colors.blue('  $ bu-atp61 -i -k <private_key> -H <host> -d <contract_address> -f <path_of_csv_file>'))
   console.log('')
@@ -223,8 +225,10 @@ if (!exit.exited) {
       })
   }
 
-  // test (temporary)
-  if (program.test) {
+  // ====================================
+  // set acceptance
+  // ====================================
+  if (program.setAcceptance) {
     if (!program.key) {
       console.log(colors.yellow(`option '-k, --key <key>' argument missing`))
       _exit(1)
@@ -246,7 +250,6 @@ if (!exit.exited) {
     // read acceptanceInput template content
     let acceptanceInput = fs.readFileSync(path.join(process.cwd(), acceptanceInputPath), 'utf-8')
     acceptanceInput = JSON.parse(acceptanceInput)
-    // lib.setAcceptance(program.host, program.key, program.address, acceptanceInput)
     lib.setAcceptance({
       host: program.host,
       privateKey: program.key,
