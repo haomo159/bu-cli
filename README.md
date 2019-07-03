@@ -60,3 +60,9 @@ bu-atp61 -s -k 账户私钥 -H 主机地址 -d 合约地址
 # 进入目录demo, 修改修改skuInput/index.json文件, 执行如下命令
 bu-atp61 -i -k 账户私钥 -H 主机地址 -d 合约地址 -f csv文件目录(特定结构)
 ```
+
+### csv文件格式
+
+```
+csv文件格式请参考 csv_demo/sku.csv 文件
+```
